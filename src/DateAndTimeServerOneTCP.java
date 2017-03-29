@@ -3,12 +3,18 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 class ThreadProcessRequest implements Runnable {
 	private Socket connectionSocket = null;
 
 	public ThreadProcessRequest(Socket connectionSocket) {
 		this.connectionSocket = connectionSocket;
+	}
+	
+	private String sendRequestToServer2 (String opName, String p1) throws UnknownHostException, IOException, ClassNotFoundException{
+		DateAndTimeImpl dAndt = new DateAndTimeImpl();		
+		return dAndt.date(p1);
 	}
 
 	public void run() {
@@ -21,7 +27,7 @@ class ThreadProcessRequest implements Runnable {
 		String opName = null;		
 		DateAndTimeImpl dAndt = new DateAndTimeImpl();
 		String p1 = null;
-		int result = 0;
+		String result = null;
 
 		//Create I/O streams
 		try {
@@ -39,13 +45,24 @@ class ThreadProcessRequest implements Runnable {
 		}
 		
 		// process request
-		opName = request.substring(0, request.indexOf("("));
+		opName = request.substring(0, request.indexOf("(")).trim();
+		System.out.println(opName);
 		p1 = request.substring(request.indexOf("(") + 1, request.indexOf(")"));
 		
-		result = dAndt.time(p1);
+		if (opName.equals("time")){
+			result = Integer.toString(dAndt.time(p1));
+		}else{
+			try {
+				result = sendRequestToServer2(opName, p1);
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		
 		// send response to client
-		response = Integer.toString(result);
+		response = result;
 		try {
 			outToClient.writeObject(response);
 			outToClient.flush();
