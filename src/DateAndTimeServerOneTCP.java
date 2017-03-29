@@ -1,6 +1,9 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -12,9 +15,28 @@ class ThreadProcessRequest implements Runnable {
 		this.connectionSocket = connectionSocket;
 	}
 	
-	private String sendRequestToServer2 (String opName, String p1) throws UnknownHostException, IOException, ClassNotFoundException{
-		DateAndTimeImpl dAndt = new DateAndTimeImpl();		
-		return dAndt.date(p1);
+	private String sendRequestToServer2 (String p1) throws UnknownHostException, IOException, ClassNotFoundException{
+		byte[] reqMsg = new byte[1024];
+		byte[] repMsg = new byte[1024];
+
+		// create socket
+		DatagramSocket clientSocket = new DatagramSocket();
+		InetAddress IPAddress = InetAddress.getByName("localhost");
+		DatagramPacket sendPacket = null;
+		DatagramPacket receivePacket = null;
+		String response = null;
+
+		reqMsg = p1.getBytes();
+		sendPacket = new DatagramPacket(reqMsg, reqMsg.length, IPAddress, 1313);
+		clientSocket.send(sendPacket);
+
+			// receive response from server
+		receivePacket = new DatagramPacket(repMsg, repMsg.length);
+		clientSocket.receive(receivePacket);
+		response = new String(receivePacket.getData());
+		clientSocket.close();
+		
+		return response;
 	}
 
 	public void run() {
@@ -53,7 +75,7 @@ class ThreadProcessRequest implements Runnable {
 			result = Integer.toString(dAndt.time(p1));
 		}else{
 			try {
-				result = sendRequestToServer2(opName, p1);
+				result = sendRequestToServer2(p1);
 			} catch (ClassNotFoundException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
