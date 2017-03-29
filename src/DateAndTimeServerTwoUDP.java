@@ -10,8 +10,8 @@ public class DateAndTimeServerTwoUDP {
 
 		// create sockets
 		DatagramSocket serverSocket = new DatagramSocket(1313);
-		byte[] receiveData = new byte[1024];
-		byte[] sendData = new byte[1024];
+		byte[] receiveData;
+		byte[] sendData;
 		
 		//create streams
 		DatagramPacket receivePacket = null;
@@ -27,6 +27,9 @@ public class DateAndTimeServerTwoUDP {
 		System.out.println("UDP server ready...");
 		
 		while (processing) {
+			
+			receiveData = new byte[1024];
+			sendData = new byte[1024];
 
 			// create socket
 			receivePacket = new DatagramPacket(receiveData,
@@ -39,6 +42,7 @@ public class DateAndTimeServerTwoUDP {
 			port = receivePacket.getPort();
 
 			// process request
+			reqMsg = reqMsg.trim();
 		    result = dAndT.date(reqMsg);
 
 			// send response to client

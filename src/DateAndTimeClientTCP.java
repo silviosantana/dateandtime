@@ -14,7 +14,7 @@ public class DateAndTimeClientTCP {
 		ObjectInputStream inFromServer = new ObjectInputStream(clientSocket.getInputStream());
 
 		String response = null;
-		String request = "date(hour)";
+		String request = "date(day)";
 		
 		//send request to server
 		outToServer.writeObject(request);

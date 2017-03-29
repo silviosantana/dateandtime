@@ -18,14 +18,13 @@ class ThreadProcessRequest implements Runnable {
 	private String sendRequestToServer2 (String p1) throws UnknownHostException, IOException, ClassNotFoundException{
 		byte[] reqMsg = new byte[1024];
 		byte[] repMsg = new byte[1024];
-
 		// create socket
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = InetAddress.getByName("localhost");
 		DatagramPacket sendPacket = null;
 		DatagramPacket receivePacket = null;
 		String response = null;
-
+		
 		reqMsg = p1.getBytes();
 		sendPacket = new DatagramPacket(reqMsg, reqMsg.length, IPAddress, 1313);
 		clientSocket.send(sendPacket);
@@ -50,6 +49,7 @@ class ThreadProcessRequest implements Runnable {
 		DateAndTimeImpl dAndt = new DateAndTimeImpl();
 		String p1 = null;
 		String result = null;
+		boolean processing = true;
 
 		//Create I/O streams
 		try {
@@ -59,39 +59,38 @@ class ThreadProcessRequest implements Runnable {
 			return;
 		}
 		
-		//wait for client request
-		try {
-			request = (String) inFromClient.readObject();
-		} catch (ClassNotFoundException | IOException e1) {
-			return;
-		}
-		
-		// process request
-		opName = request.substring(0, request.indexOf("(")).trim();
-		System.out.println(opName);
-		p1 = request.substring(request.indexOf("(") + 1, request.indexOf(")"));
-		
-		if (opName.equals("time")){
-			result = Integer.toString(dAndt.time(p1));
-		}else{
+		while (processing){
+			//wait for client request
 			try {
-				result = sendRequestToServer2(p1);
-			} catch (ClassNotFoundException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				request = (String) inFromClient.readObject();
+			} catch (ClassNotFoundException | IOException e1) {
+				return;
+			}
+			
+			// process request
+			opName = request.substring(0, request.indexOf("(")).trim();
+			p1 = request.substring(request.indexOf("(") + 1, request.indexOf(")"));
+			if (opName.equals("time")){
+				result = Integer.toString(dAndt.time(p1));
+			}else{
+				try {
+					result = sendRequestToServer2(p1);
+				} catch (ClassNotFoundException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			
+			// send response to client
+			response = result;
+			try {
+				outToClient.writeObject(response);
+				outToClient.flush();
+			} catch (IOException e) {
+
 			}
 		}
-		
-		
-		// send response to client
-		response = result;
-		try {
-			outToClient.writeObject(response);
-			outToClient.flush();
-		} catch (IOException e) {
-
-		}
-
 	}
 }
 
